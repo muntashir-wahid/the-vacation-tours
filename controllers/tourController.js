@@ -3,9 +3,11 @@ const Tour = require("./../models/tourModel");
 exports.getAllTours = async (req, res) => {
   try {
     const tours = await Tour.find();
+    const count = await Tour.estimatedDocumentCount();
 
     res.status(200).json({
       status: "success",
+      results: count,
       data: {
         tours,
       },
@@ -57,22 +59,45 @@ exports.createTour = async (req, res) => {
   }
 };
 
-exports.updateTour = (req, res) => {
-  console.log(`Update the tour ${req.params.id} with`, req.body);
+exports.updateTour = async (req, res) => {
+  try {
+    const updatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      runValidators: true,
+      new: true,
+    });
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      message: "Waiting for the database connection.",
-    },
-  });
+    res.status(200).json({
+      status: "success",
+      data: {
+        tour: updatedTour,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: "Something went wrong",
+      data: {
+        error,
+      },
+    });
+  }
 };
 
-exports.deleteTour = (req, res) => {
-  console.log(`Delete tour ${req.params.id}`);
+exports.deleteTour = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
 
-  res.status(204).json({
-    status: "success",
-    data: null,
-  });
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: "Something went wrong",
+      data: {
+        error,
+      },
+    });
+  }
 };

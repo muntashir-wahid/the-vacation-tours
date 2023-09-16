@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const validator = require("validator");
 
@@ -26,8 +27,24 @@ const userSchema = new mongoose.Schema({
   confirmPassword: {
     type: String,
     required: [true, "Password confirm is required"],
+    validate: {
+      validator: function (value) {
+        return value === this.password;
+      },
+      message: "Password didn't match",
+    },
   },
 });
 
-const User = mongoose.Model("User", userSchema);
+userSchema.pre("save", async function (next) {
+  // Guard clause for checking is the password modified
+  if (!this.isModified("password")) return next();
+
+  this.password = await bcrypt.hash(this.password, 12);
+  this.confirmPassword = undefined;
+
+  next();
+});
+
+const User = mongoose.model("User", userSchema);
 module.exports = User;

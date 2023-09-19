@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema({
     unique: [true, "This emil is taken by another user"],
   },
   photo: String,
+  role: {
+    type: String,
+    enum: ["user", "guide", "lead-guide", "admin"],
+    default: "user",
+  },
   password: {
     type: String,
     required: [true, "User must have a password"],

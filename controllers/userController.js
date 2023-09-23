@@ -1,13 +1,27 @@
+const APIFeatures = require("../utils/apiFeatures");
+const catchAsync = require("../utils/catchAsync");
 const User = require("./../models/userModel");
 
-exports.getAllUsers = (req, res) => {
+exports.getAllUsers = catchAsync(async (req, res) => {
+  const features = new APIFeatures(User.find(), req.query)
+    .filter()
+    .limitFields()
+    .sort()
+    .paginate()
+    .search();
+
+  // Execute the query
+  const users = await features.query;
+
+  // Send the response
   res.status(200).json({
     status: "success",
+    results: users.length,
     data: {
-      message: "Waiting for the database connection.",
+      users,
     },
   });
-};
+});
 
 exports.getUser = (req, res) => {
   const params = req.params.id;

@@ -138,7 +138,7 @@ exports.forgotPassword = async (req, res, next) => {
 };
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  // 1. Get user based on the token
+  // Get user based on the token
   const hashedToken = crypto
     .createHash("sha256")
     .update(req.params.token)
@@ -149,7 +149,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     passwordResetExpires: { $gte: Date.now() },
   });
 
-  // 2. If the token does not expired and the user exist, set the new password
+  // If the token does not expired and the user exist, set the new password
 
   if (!user) {
     return next(new AppError("Token is invalid or has expired", 400));
@@ -160,12 +160,31 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetExpires = undefined;
   await user.save();
 
-  // 3. Updated changedPasswordAt property
-  // 4. Log the user in, send the JWT
+  // Log the user in, send the JWT
   const token = signToken(user._id);
 
   res.status(200).json({
     status: "success",
     token,
+  });
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // Get the user from the collection
+  const user = await User.findById(req.user._id).select("+password");
+  if (!(await user.checkPasswordIsCorrect(req.body.password, user.password))) {
+    return next(new AppError("Given password is not correct", 401));
+  }
+
+  user.password = req.body.newPassword;
+  user.confirmPassword = req.body.confirmNewPassword;
+  await user.save();
+
+  // Log the user in, send the JWT
+  const token = signToken(user._id);
+
+  res.status(200).json({
+    status: "success",
+    message: token,
   });
 });

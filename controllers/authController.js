@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
+const sendEmail = require("./../utils/email");
 const User = require("./../models/userModel");
 
 const signToken = (id) => {
@@ -103,7 +104,7 @@ exports.restrictTo = (...roles) => {
   };
 };
 
-exports.forgotPassword = catchAsync(async (req, res, next) => {
+exports.forgotPassword = async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
   if (!user) {
@@ -114,10 +115,32 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
+  const message = `You can reset you password. \n${req.protocol}://${req.hostname}/api/v1/users/reset-password/${resetToken}`;
+
+  await sendEmail({ email: user.email, message });
+
   res.status(200).json({
     status: "success",
-    resetToken,
+    message: "An email was sent to you email address to reset the password.",
   });
-});
+
+  try {
+    await sendEmail({ email: user.email, message });
+
+    res.status(201).json({
+      status: "success",
+      message: "An email was sent to you email address to reset the password.",
+    });
+  } catch (error) {
+    user.passwordResetExpires = undefined;
+    user.passwordResetToken = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return next(
+      new AppError("Something went wrong. Please try again later", 500)
+    );
+  }
+};
 
 exports.resetPassword = (req, res, next) => {};

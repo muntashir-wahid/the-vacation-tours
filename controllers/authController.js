@@ -1,9 +1,10 @@
+const crypto = require("crypto");
 const { promisify } = require("util");
 
 const jwt = require("jsonwebtoken");
 
-const AppError = require("../utils/appError");
-const catchAsync = require("../utils/catchAsync");
+const AppError = require("./../utils/appError");
+const catchAsync = require("./../utils/catchAsync");
 const sendEmail = require("./../utils/email");
 const User = require("./../models/userModel");
 
@@ -117,17 +118,10 @@ exports.forgotPassword = async (req, res, next) => {
 
   const message = `You can reset you password. \n${req.protocol}://${req.hostname}/api/v1/users/reset-password/${resetToken}`;
 
-  await sendEmail({ email: user.email, message });
-
-  res.status(200).json({
-    status: "success",
-    message: "An email was sent to you email address to reset the password.",
-  });
-
   try {
     await sendEmail({ email: user.email, message });
 
-    res.status(201).json({
+    return res.status(200).json({
       status: "success",
       message: "An email was sent to you email address to reset the password.",
     });
@@ -143,4 +137,35 @@ exports.forgotPassword = async (req, res, next) => {
   }
 };
 
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1. Get user based on the token
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gte: Date.now() },
+  });
+
+  // 2. If the token does not expired and the user exist, set the new password
+
+  if (!user) {
+    return next(new AppError("Token is invalid or has expired", 400));
+  }
+  user.password = req.body.password;
+  user.confirmPassword = req.body.confirmPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  // 3. Updated changedPasswordAt property
+  // 4. Log the user in, send the JWT
+  const token = signToken(user._id);
+
+  res.status(200).json({
+    status: "success",
+    token,
+  });
+});

@@ -57,10 +57,10 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.post("save", function (doc, next) {
-  // Remove the password field from the saved document
-  doc.password = undefined;
-  doc.__v = undefined;
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password") || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
 
   next();
 });
@@ -87,11 +87,10 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
 
-  this.passwordResetToken = hashedToken = crypto
+  this.passwordResetToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
   return resetToken;

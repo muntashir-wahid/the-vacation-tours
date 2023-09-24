@@ -1,6 +1,7 @@
 const express = require("express");
 
 const {
+  deleteMe,
   forgotPassword,
   login,
   protect,
@@ -22,6 +23,7 @@ router.patch("/reset-password/:token", resetPassword);
 
 router.patch("/update-password", protect, updatePassword);
 router.patch("/update-me", protect, updateMe);
+router.delete("/delete-me", protect, deleteMe);
 
 router.route("/").get(protect, restrictTo("admin"), getAllUsers);
 

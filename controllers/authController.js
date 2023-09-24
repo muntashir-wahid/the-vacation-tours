@@ -14,6 +14,18 @@ const signToken = (id) => {
   });
 };
 
+const filterObj = (obj, ...fields) => {
+  const newObj = {};
+
+  Object.keys(obj).forEach((key) => {
+    if (fields.includes(key)) {
+      newObj[key] = obj[key];
+    }
+  });
+
+  return newObj;
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   // Create a user
   const newUser = await User.create({
@@ -186,5 +198,28 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: token,
+  });
+});
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  if (req.body.password || req.body.confirmPassword) {
+    return next(
+      new AppError(
+        "This route is not for password update. Please use /update-password",
+        400
+      )
+    );
+  }
+
+  const filteredUser = filterObj(req.body, "name", "email");
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, filteredUser, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "working on it",
+    user: updatedUser,
   });
 });

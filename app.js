@@ -3,6 +3,7 @@ const morgan = require("morgan");
 
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
+const reviewRouter = require("./routes/reviewRouter");
 const tourRouter = require("./routes/tourRouter");
 const userRouter = require("./routes/userRouter");
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/reviews", reviewRouter);
 
 app.all("*", (req, _, next) => {
   next(

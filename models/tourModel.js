@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
 
+const User = require("./userModel");
+
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -82,6 +84,7 @@ const tourSchema = new mongoose.Schema(
       default: false,
     },
     startLocation: {
+      // GeoJson
       type: {
         type: String,
         default: "Point",
@@ -99,11 +102,11 @@ const tourSchema = new mongoose.Schema(
           enum: ["Point"],
         },
         coordinates: [Number],
-        address: String,
-        descriptions: String,
-        days: Number,
+        description: String,
+        day: Number,
       },
     ],
+    guides: Array,
   },
   {
     toJSON: {
@@ -121,6 +124,18 @@ tourSchema.virtual("durationWeeks").get(function () {
 
 tourSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
+
+  next();
+});
+
+tourSchema.pre("save", async function (next) {
+  // Get users from the user collection
+  const guidesPromise = this.guides.map(
+    async (guideId) => await User.findById(guideId)
+  );
+
+  // Await the promises and assign them to guides on the current document
+  this.guides = await Promise.all(guidesPromise);
 
   next();
 });

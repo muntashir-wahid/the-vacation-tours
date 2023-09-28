@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
 
-const User = require("./userModel");
-
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -106,7 +104,7 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
-    guides: Array,
+    guides: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
   {
     toJSON: {
@@ -128,20 +126,17 @@ tourSchema.pre("save", function (next) {
   next();
 });
 
-tourSchema.pre("save", async function (next) {
-  // Get users from the user collection
-  const guidesPromise = this.guides.map(
-    async (guideId) => await User.findById(guideId)
-  );
-
-  // Await the promises and assign them to guides on the current document
-  this.guides = await Promise.all(guidesPromise);
+tourSchema.pre(/^find/, function (next) {
+  this.find({ secretTour: { $ne: true } });
 
   next();
 });
 
 tourSchema.pre(/^find/, function (next) {
-  this.find({ secretTour: { $ne: true } });
+  this.populate({
+    path: "guides",
+    select: "-__v -passwordChangedAt -role",
+  });
 
   next();
 });

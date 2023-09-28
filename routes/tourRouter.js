@@ -9,7 +9,11 @@ const {
   getTour,
   getTourStats,
   updateTour,
-} = require("../controllers/tourController");
+} = require("./../controllers/tourController");
+const {
+  createReview,
+  getAllReviews,
+} = require("./../controllers/reviewController");
 const { protect, restrictTo } = require("../controllers/authController");
 
 const router = express.Router();
@@ -24,5 +28,10 @@ router
   .get(getTour)
   .patch(updateTour)
   .delete(protect, restrictTo("admin", "lead-guide"), deleteTour);
+
+router
+  .route("/:tourId/reviews")
+  .get(protect, restrictTo("user"), getAllReviews)
+  .post(protect, restrictTo("user"), createReview);
 
 module.exports = router;

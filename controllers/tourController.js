@@ -1,8 +1,18 @@
-const APIFeatures = require("./../utils/apiFeatures");
-const AppError = require("../utils/appError");
 const catchAsync = require("./../utils/catchAsync");
-const { createOne, deleteOne, getOne, updateOne } = require("./handlerFactory");
+const {
+  createOne,
+  deleteOne,
+  getAll,
+  getOne,
+  updateOne,
+} = require("./handlerFactory");
 const Tour = require("./../models/tourModel");
+
+exports.createTour = createOne(Tour, "tour");
+exports.getAllTours = getAll(Tour, "tours");
+exports.getTour = getOne(Tour, "tour", { path: "reviews" });
+exports.updateTour = updateOne(Tour, "tour");
+exports.deleteTour = deleteOne(Tour);
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = "5";
@@ -11,32 +21,6 @@ exports.aliasTopTours = (req, res, next) => {
 
   next();
 };
-
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .limitFields()
-    .sort()
-    .paginate()
-    .search();
-
-  // Execute the query
-  const tours = await features.query;
-
-  // Send the response
-  res.status(200).json({
-    status: "success",
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-});
-
-exports.getTour = getOne(Tour, "tour", { path: "reviews" });
-exports.createTour = createOne(Tour, "tour");
-exports.updateTour = updateOne(Tour, "tour");
-exports.deleteTour = deleteOne(Tour);
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([

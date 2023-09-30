@@ -39,3 +39,16 @@ exports.updateOne = (Model, documentName = "data") => {
     });
   });
 };
+
+exports.createOne = (Model, documentName = "data") => {
+  return catchAsync(async (req, res, next) => {
+    const doc = await Model.create(req.body);
+
+    res.status(201).json({
+      status: "success",
+      data: {
+        [documentName]: doc,
+      },
+    });
+  });
+};

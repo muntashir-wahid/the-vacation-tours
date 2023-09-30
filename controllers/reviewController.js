@@ -1,5 +1,5 @@
-const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
+const { deleteOne } = require("./handlerFactory");
 const Review = require("../models/reviewModel");
 
 exports.createReview = catchAsync(async (req, res, next) => {
@@ -31,3 +31,5 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.deleteReview = deleteOne(Review);

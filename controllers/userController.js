@@ -1,5 +1,6 @@
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
+const { deleteOne } = require("./handlerFactory");
 const User = require("./../models/userModel");
 
 exports.getAllUsers = catchAsync(async (req, res) => {
@@ -57,11 +58,4 @@ exports.updateUser = (req, res) => {
   });
 };
 
-exports.deleteUser = (req, res) => {
-  console.log(`Delete user ${req.params.id}`);
-
-  res.status(204).json({
-    status: "success",
-    data: null,
-  });
-};
+exports.deleteUser = deleteOne(User);

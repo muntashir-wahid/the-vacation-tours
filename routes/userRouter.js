@@ -27,12 +27,18 @@ router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.patch("/reset-password/:token", resetPassword);
 
-router.get("/me", protect, getMe, getUser);
-router.patch("/update-password", protect, updatePassword);
-router.patch("/update-me", protect, updateMe);
-router.delete("/delete-me", protect, deleteMe);
+// Protect all routes after this middleware
+router.use(protect);
 
-router.route("/").get(protect, restrictTo("admin"), getAllUsers);
+router.get("/me", getMe, getUser);
+router.patch("/update-password", updatePassword);
+router.patch("/update-me", updateMe);
+router.delete("/delete-me", deleteMe);
+
+// All the actions after this middleware can be performed by admin
+router.use(restrictTo("admin"));
+
+router.route("/").get(getAllUsers);
 router.route("/:id").get(getUser).patch(updateUser).delete(deleteUser);
 
 module.exports = router;

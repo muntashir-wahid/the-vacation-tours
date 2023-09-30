@@ -1,7 +1,7 @@
 const APIFeatures = require("./../utils/apiFeatures");
 const AppError = require("../utils/appError");
 const catchAsync = require("./../utils/catchAsync");
-const { deleteOne } = require("./handlerFactory");
+const { deleteOne, updateOne } = require("./handlerFactory");
 const Tour = require("./../models/tourModel");
 
 exports.aliasTopTours = (req, res, next) => {
@@ -59,24 +59,7 @@ exports.createTour = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const updatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    runValidators: true,
-    new: true,
-  });
-
-  if (!updatedTour) {
-    return next(new AppError(`Can't find tour with ID:${req.params.id}`, 404));
-  }
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      tour: updatedTour,
-    },
-  });
-});
-
+exports.updateTour = updateOne(Tour, "tour");
 exports.deleteTour = deleteOne(Tour);
 
 exports.getTourStats = catchAsync(async (req, res, next) => {

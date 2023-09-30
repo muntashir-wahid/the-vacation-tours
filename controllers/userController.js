@@ -1,6 +1,6 @@
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
-const { deleteOne } = require("./handlerFactory");
+const { deleteOne, updateOne } = require("./handlerFactory");
 const User = require("./../models/userModel");
 
 exports.getAllUsers = catchAsync(async (req, res) => {
@@ -47,15 +47,5 @@ exports.createUser = (req, res) => {
   });
 };
 
-exports.updateUser = (req, res) => {
-  console.log(`Update the user ${req.params.id} with`, req.body);
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      message: "Waiting for the database connection.",
-    },
-  });
-};
-
+exports.updateUser = updateOne(User, "user");
 exports.deleteUser = deleteOne(User);

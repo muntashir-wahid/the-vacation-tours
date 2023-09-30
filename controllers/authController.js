@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 
 const AppError = require("./../utils/appError");
 const catchAsync = require("./../utils/catchAsync");
+const { getOne } = require("./handlerFactory");
 const sendEmail = require("./../utils/email");
 const User = require("./../models/userModel");
 
@@ -200,6 +201,12 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     message: token,
   });
 });
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user._id;
+
+  next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.confirmPassword) {

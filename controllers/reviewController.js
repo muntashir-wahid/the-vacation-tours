@@ -1,5 +1,5 @@
 const catchAsync = require("../utils/catchAsync");
-const { deleteOne, updateOne, createOne } = require("./handlerFactory");
+const { deleteOne, updateOne, createOne, getOne } = require("./handlerFactory");
 const Review = require("../models/reviewModel");
 
 exports.setTourAndUserIds = (req, res, next) => {
@@ -24,5 +24,6 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
 });
 
 exports.createReview = createOne(Review, "review");
+exports.getReview = getOne(Review, "review");
 exports.updateReview = updateOne(Review, "review");
 exports.deleteReview = deleteOne(Review);
